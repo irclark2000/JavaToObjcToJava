@@ -1,0 +1,30 @@
+# Define translations performed by program
+# translates functions and identifiers
+#
+
+#  HTTP translations
+#
+#  HTTP Identifier Translations
+-replaceID  "NSUTF8StringEncoding" "\"UTF-8\""
+-replaceID  "NSURL" "URL"
+-replaceID  "NSURLRequest" "HttpURLConnection"
+-replaceID  "NSMutableURLRequest" "HttpURLConnection"
+-replaceID  "NSHTTPURLResponse" "StringBuffer"
+-replaceID  "NSURLRequestReloadIgnoringCacheData" "false"
+-replaceID  "NSURLRequestUseProtocolCachePolicy" "true"
+-replaceID  "PREFS_NAME" "StorageService.PREFS_NAME"
+
+#  HTTP Function Translations
+-replaceFUNC  "setHTTPMethod(" "setRequestMethod("
+-replaceFUNC  ".dataUsingEncoding("  "+URLEncoder.encodeReverseArgs("
+-replaceFUNC  "URL.URLWithString(" "new URL("
+-replaceFUNC  "setValueforHTTPHeaderField(" "setRequestPropertyReverseArgs("
+-replaceFUNC  "addValueforHTTPHeaderField(" "addRequestPropertyReverseArgs("
+-replaceFUNC  ".stringByAddingPercentEscapesUsingEncoding(" "+URLEncoder.encodeReverseArgs("
+-replaceFUNC  "queue.addOperation(" "queue.performOperations("
+-replaceFUNC  "defaults.get(" "defaults.getStringReverseArgs(\"\", "
+-replaceFUNC  "defaults.synchronize(" "edit.apply("
+-replaceFUNC  "defaults.put(" "editor.putStringReverseArgs("
+-replaceFUNC  "dFile.delegate(" "dFile.getHandler("
+-replaceFUNC  ".keySet().contains(" ".has("
+

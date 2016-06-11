@@ -1,0 +1,97 @@
+# Define translations performed by program
+# translates functions and identifiers
+#
+
+#  Miscellaneous translations
+#
+#  Miscellaneous Identifier Translations
+-replaceID  "NSError" "Data"
+-replaceID  "NSOrderedSame" "0"
+-replaceID  "NSInteger" "Integer"
+-replaceID  "NSInteger" "Integer"
+-replaceID  "NSDecimalNumber" "BigDecimal"
+-replaceID  "NSDate" "Calendar"
+-replaceID  "YES" "true"
+-replaceID  "TRUE" "true"
+-replaceID  "NO" "false"
+-replaceID  "FALSE" "false"
+-replaceID  "NSObject" "Object"
+-replaceID  "self" "this"
+-replaceID  "nil" "null"
+-replaceID  "NULL" "null"
+-replaceID  "bool" "boolean"
+-replaceID  "IBAction" "void"
+-replaceID  "IBOutlet" ""
+-replaceID  "NSUserDefaults" "SharedPreferences"
+-replaceID  "M_PI" "Math.PI"
+
+#  Miscellaneous Function Translations
+-replaceFUNC  ".autorelease()" ""
+-replaceFUNC  ".retain()" ""
+-replaceFUNC  "NSNull.null()" "null"
+-replaceFUNC  "fabs(" "Math.abs("
+-replaceFUNC  ".release(" "+"
+-replaceFUNC  ".release(" "+"
+-replaceFUNC  "SharedPreferences.standardUserDefaults(" "getSharedPreferences(PREFS_NAME, 0"
+#  String translations
+#
+#  String Identifier Translations
+
+-replaceID  "NSString" "String"
+-replaceID  "NSMutableString" "String"
+
+#  String Function Translations
+-replaceFUNC "substringToIndex(" "substring(0, "
+-replaceFUNC "caseInsensitiveCompare(" "compareTo("
+-replaceFUNC "substringFromIndex(" "substring("
+-replaceFUNC  "isEqualToString(" "equals("
+-replaceFUNC  "hasPrefix(" "startsWith("
+-replaceFUNC  "hasSuffix(" "endsWith("
+-replaceFUNC  "String.stringWithString(" "String.format(\"%s\", "
+-replaceFUNC  "characterAtIndex(" "charAt("
+-replaceFUNC  "uppercaseString(" "toUpper("
+-replaceFUNC  "lowercaseString(" "toLower("
+-replaceFUNC  ".intValue(" "+Integer.parseInt("
+-replaceFUNC  ".doubleValue(" "+Double.parseDouble("
+-replaceFUNC  "decimalNumberByMultiplyingBy(" "multiply("
+-replaceFUNC  "decimalNumberByAdding(" "add("
+
+#  Array translations
+#
+#  Array Identifier Translations
+-replaceID  "NSArray" "ArrayList<?>"
+-replaceID  "NSMutableArray" "ArrayList<?>"
+-replaceID  "NSSet" "Set<?>"
+-replaceID  "NSMutableSet" "Set<?>"
+
+#  Array Function Translations
+-replaceFUNC  "insertObjectatIndex(" "addReverseArgs("
+-replaceFUNC  "objectAtIndex(" "get("
+-replaceFUNC  "addObject(" "add("
+-replaceFUNC  "removeObject(" "remove("
+-replaceFUNC  "containsObject(" "contains("
+-replaceFUNC  "addObjectsFromArray(" "addAll("
+-replaceFUNC  "indexOfObjectIdenticalTo(" "indexOf("
+-replaceFUNC  "replaceObjectAtIndexwithObject(" "set("
+
+#  Dictionary translations
+#
+#  Dictionary Identifier Translations
+
+#  Dictionary Function Translations
+-replaceFunc  "setObjectforKey(" "putReverseArgs("
+-replaceFunc  "removeObjectForKey(" "remove("
+-replaceFunc  "removeAllObjects(" "clear("
+-replaceFunc  "objectForKey(" "get("
+-replaceFunc  "allKeys(" "keySet("
+#
+#  Calendar Date translations
+#
+#  Calendar Date Identifier Translations
+
+#  Calendar Date Function Translations
+-replaceFunc "Calendar.date(" "Calendar.getInstance(TimeZone.getTimeZone("GMT")" 
+-replaceFunc  "removeObjectForKey(" "remove("
+-replaceFunc  "removeAllObjects(" "clear("
+-replaceFunc  "objectForKey(" "get("
+-replaceFunc  "allKeys(" "keySet("
