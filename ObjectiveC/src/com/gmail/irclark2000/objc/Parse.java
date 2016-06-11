@@ -16,6 +16,10 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import com.gmail.irclark2000.objc.java.JavaLexer;
+import com.gmail.irclark2000.objc.java.JavaParser;
+import com.gmail.irclark2000.objc.java.translate.JavaClassDescription;
+import com.gmail.irclark2000.objc.java.translate.ParserJavaListener;
 import com.gmail.irclark2000.objc.parser.ObjCLexer;
 import com.gmail.irclark2000.objc.parser.ObjCParser;
 
@@ -96,80 +100,113 @@ public class Parse {
 		}
 		if (language.equals("objc")) {
 			options.setUseExternalTranslations(Translations.readTranslations(Translations.OBJCTRANSLATIONFILE));
+			for (String con : cStructSignals) {
+				options.getConstructorSignatures().add(con);
+			}
+			ClassDescription cd = new ClassDescription();
+			Map<String, ClassDescription.ClassDeclaration> headerDeclarations = cd.getHeaders();
+			boolean first = true;
+			if (doAll) {
+				useHeaderFile = true;
+				useAutoHeaderFile = false;
+			}
+			if (useHeaderFile) {
+				if (!first) {
+					cd = new ClassDescription(headerDeclarations);
+				} else {
+					first = false;
+				}
+				options.setParsingheader(true);
+				for (String headerFileName : headerFileNames) {
+					baseName = baseNameFromPath(headerFileName);
+					options.setInputFileName(headerFileName);
+					options.setClassName(baseName);
+					cd.setTempClassName(baseName);
+					String fName = combinePathWithFileName(directoryName, "dummy");
+					options.setOutputFileName(fName);
+					BufferedInputStream instream = null;
+					instream = new BufferedInputStream(new FileInputStream(headerFileName));
+					ANTLRInputStream antlrStream = null;
+					antlrStream = new ANTLRInputStream(instream);
+					ObjCParser.Translation_unitContext tree = new ObjCParser(
+							new CommonTokenStream(new ObjCLexer(antlrStream))).translation_unit();
+					// walk the tree and activate so we can listen
+					ParseTreeWalker walker = new ParseTreeWalker();
+					walker.walk(new ParserObjcListener(cd, null, options), tree);
+					instream.close();
+				}
+			}
+
+			// Set<String> keys = cd.getHeaders().keySet();
+			options.setParsingheader(false);
+			options.setPackageName(packageName);
+			for (String inputFileName : inputFileNames) {
+				baseName = baseNameFromPath(inputFileName);
+				options.setInputFileName(inputFileName);
+				if (inputFileName.length() > 0) {
+					BufferedInputStream instream = null;
+					instream = new BufferedInputStream(new FileInputStream(inputFileName));
+					ANTLRInputStream antlrStream = null;
+					antlrStream = new ANTLRInputStream(instream);
+					// lexing
+					ObjCLexer lexer = new ObjCLexer(antlrStream);
+					CommonTokenStream tokens = new CommonTokenStream(lexer);
+					ObjCParser parser = new ObjCParser(tokens);
+					RuleContext tree = parser.translation_unit();
+
+					// walk the tree and activate so we can listen
+					ParseTreeWalker walker = new ParseTreeWalker();
+					cd = new ClassDescription(headerDeclarations);
+					options.setClassName(baseName);
+					cd.setTempClassName(baseName);
+					options.setParsingheader(false);
+					String fName = outputFileName;
+					if (fName.length() == 0) {
+						fName = combinePathWithFileName(directoryName, baseName + ".java");
+					}
+					options.setOutputFileName(fName);
+
+					walker.walk(new ParserObjcListener(cd, tokens, options), tree);
+				}
+			}
+
 		} else if (language.equals("java")) {
+			//JavaClassDescription jcd = new JavaClassDescription();
 			options.setUseExternalTranslations(Translations.readTranslations(Translations.JAVATRANSLATIONFILE));
+			options.setParsingheader(false);
+			options.setPackageName(packageName);
+			for (String inputFileName : inputFileNames) {
+				baseName = baseNameFromPath(inputFileName);
+				options.setInputFileName(inputFileName);
+				if (inputFileName.length() > 0) {
+					BufferedInputStream instream = null;
+					instream = new BufferedInputStream(new FileInputStream(inputFileName));
+					ANTLRInputStream antlrStream = null;
+					antlrStream = new ANTLRInputStream(instream);
+					// lexing
+					JavaLexer lexer = new JavaLexer(antlrStream);
+					CommonTokenStream tokens = new CommonTokenStream(lexer);
+					JavaParser parser = new JavaParser(tokens);
+					RuleContext tree = parser.compilationUnit();
+
+					// walk the tree and activate so we can listen
+					ParseTreeWalker walker = new ParseTreeWalker();
+					//jcd = new JavaClassDescription();
+//					options.setClassName(baseName);
+//					cd.setTempClassName(baseName);
+//					options.setParsingheader(false);
+//					String fName = outputFileName;
+//					if (fName.length() == 0) {
+//						fName = combinePathWithFileName(directoryName, baseName + ".java");
+//					}
+//					options.setOutputFileName(fName);
+//
+					walker.walk(new ParserJavaListener(), tree);
+				}
+			}
 		} else {
 			System.out.printf("Language %s is not supported.\n", language);
 			System.exit(1);
-		}
-		for (String con : cStructSignals) {
-			options.getConstructorSignatures().add(con);
-		}
-		ClassDescription cd = new ClassDescription();
-		Map<String, ClassDescription.ClassDeclaration> headerDeclarations = cd.getHeaders();
-		boolean first = true;
-		if (doAll) {
-			useHeaderFile = true;
-			useAutoHeaderFile = false;
-		}
-		if (useHeaderFile) {
-			if (!first) {
-				cd = new ClassDescription(headerDeclarations);
-			} else {
-				first = false;
-			}
-			options.setParsingheader(true);
-			for (String headerFileName : headerFileNames) {
-				baseName = baseNameFromPath(headerFileName);
-				options.setInputFileName(headerFileName);
-				options.setClassName(baseName);
-				cd.setTempClassName(baseName);
-				String fName = combinePathWithFileName(directoryName, "dummy");
-				options.setOutputFileName(fName);
-				BufferedInputStream instream = null;
-				instream = new BufferedInputStream(new FileInputStream(headerFileName));
-				ANTLRInputStream antlrStream = null;
-				antlrStream = new ANTLRInputStream(instream);
-				ObjCParser.Translation_unitContext tree = new ObjCParser(
-						new CommonTokenStream(new ObjCLexer(antlrStream))).translation_unit();
-				// walk the tree and activate so we can listen
-				ParseTreeWalker walker = new ParseTreeWalker();
-				walker.walk(new ParserObjcListener(cd, null, options), tree);
-				instream.close();
-			}
-		}
-
-		// Set<String> keys = cd.getHeaders().keySet();
-		options.setParsingheader(false);
-		options.setPackageName(packageName);
-		for (String inputFileName : inputFileNames) {
-			baseName = baseNameFromPath(inputFileName);
-			options.setInputFileName(inputFileName);
-			if (inputFileName.length() > 0) {
-				BufferedInputStream instream = null;
-				instream = new BufferedInputStream(new FileInputStream(inputFileName));
-				ANTLRInputStream antlrStream = null;
-				antlrStream = new ANTLRInputStream(instream);
-				// lexing
-				ObjCLexer lexer = new ObjCLexer(antlrStream);
-				CommonTokenStream tokens = new CommonTokenStream(lexer);
-				ObjCParser parser = new ObjCParser(tokens);
-				RuleContext tree = parser.translation_unit();
-
-				// walk the tree and activate so we can listen
-				ParseTreeWalker walker = new ParseTreeWalker();
-				cd = new ClassDescription(headerDeclarations);
-				options.setClassName(baseName);
-				cd.setTempClassName(baseName);
-				options.setParsingheader(false);
-				String fName = outputFileName;
-				if (fName.length() == 0) {
-					fName = combinePathWithFileName(directoryName, baseName + ".java");
-				}
-				options.setOutputFileName(fName);
-
-				walker.walk(new ParserObjcListener(cd, tokens, options), tree);
-			}
 		}
 	}
 
