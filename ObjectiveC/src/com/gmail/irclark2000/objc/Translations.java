@@ -20,9 +20,12 @@ public class Translations {
 	 */
 	public static final String GLOBALMAPKEY = "GLOBALMAPKEY";
 	/**
-	 *  name of default external translation file
+	 *  name of default external ObjectiveC translation file
 	 */
 	public static final String OBJCTRANSLATIONFILE = "objcTranslate.dat";
+	/**
+	 *  name of default external Java translation file
+	 */
 	public static final String JAVATRANSLATIONFILE = "javaTranslate.dat";
 
 	/**
