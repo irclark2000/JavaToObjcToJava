@@ -56,7 +56,10 @@ public class CodeFormatter {
 		}
 	};
 
-	CodeFormatter() {
+	/**
+	 * Create object to use for code formatting
+	 */
+	public CodeFormatter() {
 		constructorSignalsList = new ArrayList<String>();
 		constructorSignalsList.add("init");
 	}

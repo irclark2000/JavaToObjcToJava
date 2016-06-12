@@ -1017,4 +1017,14 @@ public interface JavaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitArguments(JavaParser.ArgumentsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link JavaParser#identifier}.
+	 * @param ctx the parse tree
+	 */
+	void enterIdentifier(JavaParser.IdentifierContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link JavaParser#identifier}.
+	 * @param ctx the parse tree
+	 */
+	void exitIdentifier(JavaParser.IdentifierContext ctx);
 }

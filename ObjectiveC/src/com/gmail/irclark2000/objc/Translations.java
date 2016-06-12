@@ -77,6 +77,9 @@ public class Translations {
 						args.get(1));
 			} else if (parts[0].toLowerCase().equals("-replacefunc")) {
 				ArrayList<String> args = splitEscapeUnquote(parts[1]);
+				if (args.size() < 2) {
+					System.out.println("Here it is");
+				}
 				String arg2 = args.get(1);
 				if (arg2.length() > 0
 						&& arg2.substring(arg2.length() - 1).equals("-")) {

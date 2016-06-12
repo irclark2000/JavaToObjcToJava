@@ -201,7 +201,7 @@ public class Parse {
 //					}
 //					options.setOutputFileName(fName);
 //
-					walker.walk(new ParserJavaListener(), tree);
+					walker.walk(new ParserJavaListener(options), tree);
 				}
 			}
 		} else {

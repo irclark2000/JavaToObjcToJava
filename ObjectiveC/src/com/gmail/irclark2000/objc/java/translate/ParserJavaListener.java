@@ -5,10 +5,17 @@ import java.util.ArrayList;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 
+import com.gmail.irclark2000.objc.CodeFormatter;
+import com.gmail.irclark2000.objc.ParseOptions;
 import com.gmail.irclark2000.objc.java.JavaBaseListener;
 import com.gmail.irclark2000.objc.java.JavaParser;
+import com.gmail.irclark2000.objc.java.JavaParser.BlockStatementContext;
+import com.gmail.irclark2000.objc.java.JavaParser.ClassOrInterfaceModifierContext;
+import com.gmail.irclark2000.objc.java.JavaParser.FormalParameterContext;
+import com.gmail.irclark2000.objc.java.JavaParser.SwitchLabelContext;
 import com.gmail.irclark2000.objc.java.JavaParser.TypeContext;
-
+import com.gmail.irclark2000.objc.java.JavaParser.VariableDeclaratorContext;
+import com.gmail.irclark2000.objc.java.JavaParser.VariableModifierContext;
 
 /**
  * Parse Java File and Genrate Output
@@ -21,6 +28,8 @@ public class ParserJavaListener extends JavaBaseListener {
 	int currentDeclaration = -1;
 	ParseTreeProperty<String> code = new ParseTreeProperty<String>();
 	ParseTreeProperty<ArrayList<String>> list = new ParseTreeProperty<ArrayList<String>>();
+	private CodeFormatter codeFormat = new CodeFormatter();
+	private ParseOptions options;
 
 	String getCode(ParseTree ctx) {
 		return code.get(ctx);
@@ -47,22 +56,31 @@ public class ParserJavaListener extends JavaBaseListener {
 	}
 
 	/**
-	 * Make a parsejavalistener
+	 * Make a ParseJavaListener to translate code
+	 * 
+	 * @param options
+	 *            user selected options for coding
 	 * 
 	 */
-	public ParserJavaListener() {
+	public ParserJavaListener(ParseOptions options) {
+		this.options = options;
 
 	}
 
 	@Override
 	public void exitTypeDeclaration(JavaParser.TypeDeclarationContext ctx) {
-
-		if (ctx.classDeclaration() != null) {
-
-		} else {
-
+		String code;
+		String modifier ="";
+		String sep = "";
+		for (ClassOrInterfaceModifierContext cim : ctx.classOrInterfaceModifier()) {
+			modifier += sep + getCode(cim);
+			sep = " ";
 		}
-
+		code = getCodeNotNull(ctx.classDeclaration());
+		code = getCodeNotNull(ctx.enumDeclaration());
+		code = getCodeNotNull(ctx.interfaceDeclaration());
+		code = getCodeNotNull(ctx.annotationTypeDeclaration());
+		setCode(ctx, code);
 	}
 
 	@Override
@@ -144,26 +162,215 @@ public class ParserJavaListener extends JavaBaseListener {
 	@Override
 	public void exitClassBodyDeclaration(JavaParser.ClassBodyDeclarationContext ctx) {
 		String code = "";
-		if (ctx.getChild(0).getText().equals(";")){
+		if (ctx.getChild(0).getText().equals(";")) {
 			code = "\n" + indentCode() + ";";
 		} else if (ctx.block() != null) {
 			code = getCode(ctx.block());
 		} else {
 			String sep = "";
-			for (int i=0; i < ctx.modifier().size(); i++){
+			for (int i = 0; i < ctx.modifier().size(); i++) {
 				code += (sep + getCode(ctx.modifier(i)));
-				sep =", ";
+				sep = ", ";
 			}
 			code += " " + getCode(ctx.memberDeclaration());
 		}
 		setCode(ctx, code);
-
 	}
-	 @Override
-		 public void exitMemberDeclaration(JavaParser.MemberDeclarationContext ctx) {
-		 String code = "";
-		 setCode(ctx, code);
-		 }
+
+
+	@Override
+	public void exitModifier(JavaParser.ModifierContext ctx) {
+		String code = "";
+		if (ctx.classOrInterfaceModifier() != null) {
+			code = getCode(ctx.classOrInterfaceModifier());
+		} else {
+			code = ctx.getText();
+		}
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitClassOrInterfaceModifier(JavaParser.ClassOrInterfaceModifierContext ctx) {
+		String code = "";
+		if (ctx.annotation() != null) {
+			code = getCode(ctx.annotation());
+		} else {
+			code = ctx.getText();
+		}
+		setCode(ctx, code);
+	}
+	
+	@Override
+	public void exitAnnotation(JavaParser.AnnotationContext ctx) {
+		setCode(ctx, ctx.getText());
+	}
+
+	@Override
+	public void exitMemberDeclaration(JavaParser.MemberDeclarationContext ctx) {
+		String code = ctx.getText();
+		if (ctx.methodDeclaration() != null) {
+			code = getCode(ctx.methodDeclaration());
+		}
+		else if (ctx.genericMethodDeclaration() != null) {
+			code = getCode(ctx.genericMethodDeclaration());
+		}
+		else if (ctx.fieldDeclaration() != null) {
+			code = getCode(ctx.fieldDeclaration());
+		}
+		else if (ctx.constructorDeclaration() != null) {
+			code = getCode(ctx.constructorDeclaration());
+		}
+		else if (ctx.genericConstructorDeclaration() != null) {
+			code = getCode(ctx.genericConstructorDeclaration());
+		}
+		else if (ctx.interfaceDeclaration() != null) {
+			code = getCode(ctx.interfaceDeclaration());
+		}
+		else if (ctx.annotationTypeDeclaration() != null) {
+			code = getCode(ctx.annotationTypeDeclaration());
+		}
+		else if (ctx.classDeclaration() != null) {
+			code = getCode(ctx.annotationTypeDeclaration());
+		}
+		else if (ctx.enumDeclaration() != null) {
+			code = getCode(ctx.annotationTypeDeclaration());
+		}
+		setCode(ctx, code);
+	}
+	
+	@Override
+	public void exitMethodDeclaration(JavaParser.MethodDeclarationContext ctx) {
+		String code;
+		if (ctx.type() != null) {
+			code = "\n" + indentCode() + getCode(ctx.type());
+		} else {
+			code = "\n" + indentCode() + ctx.getChild(0).getText();
+		}
+		code += " " + ctx.Identifier().getText();
+		code += getCode (ctx.formalParameters()) + " ";
+		if (ctx.getChild(3).getText().charAt(0) == '[') {
+			code += ctx.getChild(3).getText() + " ";
+		}
+		//FIXME: not using throws so far
+		if (ctx.methodBody() != null) {
+			code += getCode(ctx.methodBody());
+		} else {
+			code += "\n" + indentCode() + ";";
+		}
+		setCode(ctx, code);
+	}
+	
+	@Override
+	public void exitGenericMethodDeclaration(JavaParser.GenericMethodDeclarationContext ctx) {
+		String code = "";
+		code += "\n" + indentCode() + " " + getCode(ctx.typeParameters()) + " " + getCode(ctx.methodDeclaration());
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitConstructorDeclaration(JavaParser.ConstructorDeclarationContext ctx) {
+		// FIXME: no throws stuff yet
+		String code = "";
+		code += "\n" + indentCode() + " " + getCode(ctx.Identifier()) + " " + getCode(ctx.formalParameters());
+		code += getCode(ctx.constructorBody());
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitGenericConstructorDeclaration(JavaParser.GenericConstructorDeclarationContext ctx) {
+		// FIXME: no throws stuff yet
+		String code = "";
+		code += "\n" + indentCode() + " " + getCode(ctx.typeParameters()) + " " + getCode(ctx.constructorDeclaration());
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
+		// FIXME: needs lots of work
+		setCode(ctx, ctx.getText());
+	}
+
+	@Override
+	public void exitAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx) {
+		// FIXME: needs lots of work
+		setCode(ctx, ctx.getText());
+	}
+
+	@Override
+	public void exitTypeParameters(JavaParser.TypeParametersContext ctx) {
+		setCode(ctx, ctx.getText());
+	}
+	
+	@Override
+	public void exitEnumDeclaration(JavaParser.EnumDeclarationContext ctx) {
+		setCode(ctx, ctx.getText());
+	}
+	
+	@Override
+	public void exitMethodBody(JavaParser.MethodBodyContext ctx) {
+		setCode(ctx, getCode(ctx.block()));
+	}
+
+	@Override
+	public void exitConstructorBody(JavaParser.ConstructorBodyContext ctx) {
+		setCode(ctx, getCode(ctx.block()));
+	}
+
+	
+	@Override
+	public void exitFormalParameters(JavaParser.FormalParametersContext ctx) {
+		setCode(ctx, "(" + getCode(ctx.formalParameterList()) + ")");
+	}
+	@Override
+	public void exitFormalParameterList(JavaParser.FormalParameterListContext ctx) {
+		String code = "";
+		if (ctx.formalParameter() != null) {
+			String sep ="";
+			for(FormalParameterContext fP : ctx.formalParameter()){
+				code += sep + getCode(fP);
+				sep = ", ";
+			}
+			if (ctx.lastFormalParameter() != null) {
+				code += ", " + getCode(ctx.lastFormalParameter());
+			}
+		} else {
+			code = getCode(ctx.lastFormalParameter());
+		}
+		setCode(ctx, code);
+	}
+	
+	public void exitFormalParameter(JavaParser.FormalParameterContext ctx) {
+		String code = "";
+		String sep = "";
+		for (VariableModifierContext vm : ctx.variableModifier()) {
+			code += sep + getCode(vm);
+			sep = " ";
+		}
+		code += " " + getCode(ctx.type()) + " " + getCode(ctx.variableDeclaratorId());
+		setCode(ctx, code);
+	}
+
+	public void exitLastFormalParameter(JavaParser.LastFormalParameterContext ctx) {
+		String code = "";
+		String sep = "";
+		for (VariableModifierContext vm : ctx.variableModifier()) {
+			code += sep + getCode(vm);
+			sep = " ";
+		}
+		code += " " + getCode(ctx.type()) + " ... " + getCode(ctx.variableDeclaratorId());
+		setCode(ctx, code);
+	}
+	
+	public void exitVariableModifier(JavaParser.VariableModifierContext ctx) {
+		setCode(ctx, ctx.getText());
+	}
+
+	@Override
+	public void exitFieldDeclaration(JavaParser.FieldDeclarationContext ctx) {
+		String code = "";
+		code += "\n" + indentCode() + getCode(ctx.type()) + " " + getCode(ctx.variableDeclarators()) + ";";
+		setCode(ctx, code);
+	}
 
 	@Override
 	public void exitBlock(JavaParser.BlockContext ctx) {
@@ -194,6 +401,7 @@ public class ParserJavaListener extends JavaBaseListener {
 
 	@Override
 	public void exitStatement(JavaParser.StatementContext ctx) {
+		// FIXME: missing throw, try ASSERT synchronized for now
 		String code = "";
 		String firstWord = ctx.getChild(0).getText();
 		switch (firstWord) {
@@ -215,17 +423,30 @@ public class ParserJavaListener extends JavaBaseListener {
 		case "switch":
 			code = "\n" + indentCode() + "switch " + getCode(ctx.parExpression()) + " {\n";
 			incrementIndentLevel(1);
-			
+
 			incrementIndentLevel(-1);
 			code += "\n" + indentCode() + "}";
 			break;
-
+		case "return":
+			code = "\n" + indentCode() + "return " + getCodeNotNull(ctx.expression(0)) + ";";
+			break;
+		case "break":
+			code = "\n" + indentCode() + "break " + getCodeNotNull(ctx.Identifier()) + ";";
+			break;
+		case "continue":
+			code = "\n" + indentCode() + "continue " + getCodeNotNull(ctx.Identifier()) + ";";
+			break;
+		case ";":
+			code = "\n" + indentCode() + ";";
+			break;
 		default:
 			if (ctx.block() != null) {
 				code = getCode(ctx.block());
 			} else if (ctx.Identifier() != null) {
 			} else if (ctx.statementExpression() != null) {
 				code = "\n" + indentCode() + getCode(ctx.statementExpression());
+			} else if (ctx.Identifier() != null) {
+				code = "\n" + indentCode() + ctx.Identifier().getText() + " : " + getCode(ctx.statement(0));
 			} else {
 				code = indentCode() + ctx.getText();
 			}
@@ -233,6 +454,32 @@ public class ParserJavaListener extends JavaBaseListener {
 		setCode(ctx, code);
 	}
 
+	// switch section
+
+	@Override
+	public void exitSwitchBlockStatementGroup(JavaParser.SwitchBlockStatementGroupContext ctx) {
+		String code = "";
+		for (SwitchLabelContext sctx : ctx.switchLabel()) {
+			code += "\n" + indentCode() + getCode(sctx);
+		}
+		for (BlockStatementContext bctx : ctx.blockStatement()) {
+			code += getCode(bctx);
+		}
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitSwitchLabel(JavaParser.SwitchLabelContext ctx) {
+		String code;
+		if (ctx.constantExpression() != null || ctx.enumConstantName() != null) {
+			code = "\n" + indentCode() + "case" + getCode(ctx.getChild(1)) + " : ";
+		} else {
+			code = "\n" + indentCode() + "default" + " : ";
+		}
+		setCode(ctx, code);
+	}
+
+	// for statement stuff
 	@Override
 	public void exitForControl(JavaParser.ForControlContext ctx) {
 		String code = "";
@@ -258,7 +505,9 @@ public class ParserJavaListener extends JavaBaseListener {
 
 	@Override
 	public void exitForInit(JavaParser.ForInitContext ctx) {
-		setCode(ctx, "*");
+		String code = getCodeNotNull(ctx.expressionList());
+		code += getCodeNotNull(ctx.localVariableDeclaration());
+		setCode(ctx, code);
 	}
 
 	@Override
@@ -276,12 +525,57 @@ public class ParserJavaListener extends JavaBaseListener {
 	}
 
 	@Override
+	public void exitLocalVariableDeclaration(JavaParser.LocalVariableDeclarationContext ctx) {
+		String code = "";
+		String sep = "";
+		for (VariableModifierContext mod : ctx.variableModifier()) {
+			code += sep + getCode(mod);
+			sep = " ";
+		}
+		code += getCode(ctx.type()) + getCode(ctx.variableDeclarators());
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitVariableDeclarators(JavaParser.VariableDeclaratorsContext ctx) {
+		String code = "";
+		String sep = "";
+		for (VariableDeclaratorContext vd : ctx.variableDeclarator()) {
+			code += sep + getCode(vd);
+			sep = ", ";
+		}
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitVariableDeclarator(JavaParser.VariableDeclaratorContext ctx) {
+		String code = "";
+		code = getCode(ctx.variableDeclaratorId());
+		if (ctx.variableInitializer() != null) {
+			code += " " + getCode(ctx.variableInitializer());
+		}
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitVariableInitializer(JavaParser.VariableInitializerContext ctx) {
+		String code = getCodeNotNull(ctx.expression());
+		code = getCodeNotNull(ctx.arrayInitializer());
+		setCode(ctx, code);
+	}
+
+	@Override
 	public void exitVariableDeclaratorId(JavaParser.VariableDeclaratorIdContext ctx) {
 		String code = ctx.Identifier().getText();
 		for (int i = 1; i < ctx.getChildCount(); i++) {
 			code += "[]";
 		}
 		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitArrayInitializer(JavaParser.ArrayInitializerContext ctx) {
+		setCode(ctx, ctx.getText());
 	}
 
 	@Override
@@ -324,12 +618,22 @@ public class ParserJavaListener extends JavaBaseListener {
 		} else if (ctx.getChildCount() == 3) {
 			// should be all binary expressions
 			code = getCode(ctx.getChild(0)) + ctx.getChild(1).getText() + getCode(ctx.getChild(2));
+		} else {
+			code = working; // default simply outputs line as received
 		}
 		setCode(ctx, code);
 	}
 
 	public void exitStatementExpression(JavaParser.StatementExpressionContext ctx) {
 		setCode(ctx, getCode(ctx.expression()));
+	}
+
+	public void exitConstantExpression(JavaParser.ConstantExpressionContext ctx) {
+		setCode(ctx, getCode(ctx.expression()));
+	}
+
+	public void exitEnumConstantName(JavaParser.EnumConstantNameContext ctx) {
+		setCode(ctx, getCode(ctx.Identifier()));
 	}
 
 	@Override
@@ -345,11 +649,18 @@ public class ParserJavaListener extends JavaBaseListener {
 		if (ctx.getChild(0).getText().equals("(")) {
 			code = "(" + getCode(ctx.getChild(1)) + ")";
 		} else if (ctx.literal() != null) {
-			// FIXME look for null to be replaced by nil
 			code = ctx.literal().getText();
-		} else if (ctx.Identifier() != null) {
-			code = ctx.Identifier().getText();
+		} else if (ctx.identifier() != null) {
+			// FIXME look for null to be replaced by nil
+			code = getCode(ctx.identifier());
 		}
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitIdentifier(JavaParser.IdentifierContext ctx) {
+		// FIXME: translate identifier
+		String code = ctx.getText();
 		setCode(ctx, code);
 	}
 

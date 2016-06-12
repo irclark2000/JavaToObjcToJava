@@ -69,7 +69,7 @@
 #  Dictionary Identifier Translations
 
 #  Dictionary Function Translations
--replaceFunc  "setObjectforKeyReverseArgs(" 
+-replaceFunc  "put("  "setObjectforKey("
 -replaceFunc  "remove("	"removeObjectForKey(" 
 -replaceFunc  "clear("	"removeAllObjects(" 
 -replaceFunc  "get("	"objectForKey(" 

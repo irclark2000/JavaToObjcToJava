@@ -540,7 +540,7 @@ primary
     |   'this'
     |   'super'
     |   literal
-    |   Identifier
+    |   identifier
     |   type '.' 'class'
     |   'void' '.' 'class'
     |   nonWildcardTypeArguments (explicitGenericInvocationSuffix | 'this' arguments)
@@ -602,6 +602,9 @@ explicitGenericInvocationSuffix
 arguments
     :   '(' expressionList? ')'
     ;
+
+identifier : Identifier
+	;
 
 // LEXER
 
