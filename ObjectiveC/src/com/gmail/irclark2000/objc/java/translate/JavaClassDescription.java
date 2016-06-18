@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.gmail.irclark2000.objc.java.translate.MethodSignature.Type;
+
 /**
  * @author Dad
  * Maintains a list of the declarations obtained while parsing
@@ -13,6 +15,9 @@ public class JavaClassDescription {
 	String classType;
 	String visibility;
 	private ArrayList<JavaClassDescription> classes;
+	private ArrayList<MethodSignature> methods;
+	private String superType;
+	private ArrayList<String> interfaceList;
 	private String className;
 	private int indentLevel;
 	
@@ -24,12 +29,19 @@ public class JavaClassDescription {
 	}
 
 	/**
-	 * @param headers
+	 * Add an inner class to a class description
+	 * @param cl
 	 */
-	public void setClasses(ArrayList<JavaClassDescription> classes) {
-		this.classes = classes;
+	public void addClasss(JavaClassDescription cl) {
+		classes.add(cl);
 	}
-
+	/**
+	 * Adding a method
+	 * @param methodSignature add a method to class
+	 */
+	public void addMethod(MethodSignature methodSignature) {
+		methods.add(methodSignature);
+	}
 
 	/**
 	 * @return class name based on file name
@@ -55,6 +67,7 @@ public class JavaClassDescription {
 		indentLevel = 0;
 		className = name;
 		this.classType = type;
+		this.methods = new ArrayList<MethodSignature>();
 	}
 
 	/**

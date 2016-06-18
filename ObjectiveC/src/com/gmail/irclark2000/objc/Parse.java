@@ -175,6 +175,7 @@ public class Parse {
 			options.setUseExternalTranslations(Translations.readTranslations(Translations.JAVATRANSLATIONFILE));
 			options.setParsingheader(false);
 			options.setPackageName(packageName);
+			ArrayList<ArrayList<JavaClassDescription>> myClassDescriptions = new ArrayList<ArrayList<JavaClassDescription>>(); 
 			for (String inputFileName : inputFileNames) {
 				baseName = baseNameFromPath(inputFileName);
 				options.setInputFileName(inputFileName);
@@ -201,7 +202,7 @@ public class Parse {
 //					}
 //					options.setOutputFileName(fName);
 //
-					walker.walk(new ParserJavaListener(options), tree);
+					walker.walk(new ParserJavaListener(options, myClassDescriptions), tree);
 				}
 			}
 		} else {
