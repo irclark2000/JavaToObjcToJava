@@ -34,6 +34,7 @@ public class ParserJavaListener extends JavaBaseListener {
 	private CodeFormatter codeFormat = new CodeFormatter();
 	private ParseOptions options;
 	private ArrayList<ArrayList<JavaClassDescription>> myDescriptions;
+	private SymbolTable activeSymbolTable;
 
 	String getCode(ParseTree ctx) {
 		return code.get(ctx);
@@ -95,6 +96,19 @@ public class ParserJavaListener extends JavaBaseListener {
 		String code = ctx.Identifier().getText();
 		JavaClassDescription desc = new JavaClassDescription(code, "class");
 		declarationList.add(desc);
+		if (currentDeclaration == 0) {
+			desc.setClassName(options.getClassName());
+			this.activeSymbolTable = desc.getMySymbols();
+			activeSymbolTable.setParent(null);
+		} else {
+			JavaClassDescription parent = declarationList.get(currentDeclaration);
+			desc.setClassName(parent.getClassName() + "." + options.getClassName());
+			this.activeSymbolTable = desc.getMySymbols();
+			activeSymbolTable.setParent(parent.getMySymbols());
+		}
+		Symbol cSymbol = new Symbol(desc.getClassName(), Symbol.SymbolClass.CLASS);
+		activeSymbolTable.addSymbol(cSymbol);
+	
 		currentDeclaration++;
 	}
 
@@ -337,11 +351,53 @@ public class ParserJavaListener extends JavaBaseListener {
 	}
 
 	@Override
-	public void exitInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
-		// FIXME: needs lots of work
-		setCode(ctx, ctx.getText());
+	public void enterInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
+		String code = ctx.Identifier().getText();
+		JavaClassDescription desc = new JavaClassDescription(code, "interface");
+		declarationList.add(desc);
+		currentDeclaration++;
+
 	}
 
+	@Override
+	public void exitInterfaceDeclaration(JavaParser.InterfaceDeclarationContext ctx) {
+		// FIXME: no throws stuff yet
+		String myCode = ctx.getText();
+		String.format(myCode);
+		String code = "";
+		code += ctx.Identifier().getText();		
+		// if extends
+		if (ctx.typeParameters() != null) {
+			code += getCode(ctx.typeParameters());
+			String sParams = getCode(ctx.typeParameters());
+			ArrayList<String> fParams = this.splitParamatersToList(sParams.substring(1, sParams.length() - 1), ", ");
+			for (String p : fParams) {
+//				activeMethod.addParameterType(p);
+			}
+			
+		}
+		if (ctx.typeList() != null) {
+			
+		}
+		
+		code += getCode(ctx.interfaceBody());
+		
+		activeMethod.setBody(code);
+		activeMethod= null;
+		setCode(ctx, code);
+	}
+
+	@Override
+	public void exitInterfaceBody(JavaParser.InterfaceBodyContext ctx) {
+		
+	}
+
+
+	@Override
+	public void exitInterfaceBodyDeclaration(JavaParser.InterfaceBodyDeclarationContext ctx) {
+		
+	}
+	
 	@Override
 	public void exitAnnotationTypeDeclaration(JavaParser.AnnotationTypeDeclarationContext ctx) {
 		// FIXME: needs lots of work
@@ -914,7 +970,7 @@ public class ParserJavaListener extends JavaBaseListener {
 		}
 		setCode(ctx, eList);
 	}
-
+	
 	// @Override
 	// public void exit**(JavaParser.**Context ctx) {
 	// String code = "";

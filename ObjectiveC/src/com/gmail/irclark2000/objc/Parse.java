@@ -193,8 +193,7 @@ public class Parse {
 					// walk the tree and activate so we can listen
 					ParseTreeWalker walker = new ParseTreeWalker();
 					//jcd = new JavaClassDescription();
-//					options.setClassName(baseName);
-//					cd.setTempClassName(baseName);
+					options.setClassName(baseName);
 //					options.setParsingheader(false);
 //					String fName = outputFileName;
 //					if (fName.length() == 0) {

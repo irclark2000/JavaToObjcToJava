@@ -20,7 +20,22 @@ public class JavaClassDescription {
 	private ArrayList<String> interfaceList;
 	private String className;
 	private int indentLevel;
+	private SymbolTable mySymbols;
 	
+	/**
+	 * @return the mySymbols
+	 */
+	public SymbolTable getMySymbols() {
+		return mySymbols;
+	}
+
+	/**
+	 * @param mySymbols the mySymbols to set
+	 */
+	public void setMySymbols(SymbolTable mySymbols) {
+		this.mySymbols = mySymbols;
+	}
+
 	/**
 	 * @return classes
 	 */
